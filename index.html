@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#020617">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Мастер Ком">
+    <meta name="description" content="Тренажер по перепискам и коммуникации">
+    <link rel="manifest" href="./manifest.json">
+    <title>Тренажер: Мастер Коммуникаций</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        body {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-200 font-sans min-h-screen pb-20 select-none">
+
+<header class="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-20 shadow-lg shadow-black/20">
+    <div class="max-w-3xl mx-auto flex items-center justify-between">
+        <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent truncate pr-2">
+            Мастер Коммуникаций
+        </h1>
+        <div id="version-badge" class="text-xs text-slate-500 border border-slate-700 px-2 py-1 rounded-full shrink-0">
+            PWA
+        </div>
+    </div>
+</header>
+
+<nav class="max-w-3xl mx-auto p-4 flex gap-2 overflow-x-auto no-scrollbar" id="nav-tabs">
+    <button onclick="switchTab('theory')" data-tab="theory"
+        class="tab-btn flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap bg-indigo-600 text-white shadow-lg shadow-indigo-900/30">
+        📖 Теория
+    </button>
+
+    <button onclick="switchTab('texting')" data-tab="texting"
+        class="tab-btn flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800">
+        💬 Text Game
+    </button>
+
+    <button onclick="switchTab('quiz')" data-tab="quiz"
+        class="tab-btn flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800">
+        🎯 Тренажер
+    </button>
+
+    <button onclick="switchTab('progress')" data-tab="progress"
+        class="tab-btn flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800">
+        📊 Прогресс
+    </button>
+</nav>
+
+<main class="max-w-3xl mx-auto p-4">
+
+    <div id="view-theory" class="space-y-6 block animate-fade-in">
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-xl">
+            <h2 class="text-2xl font-semibold mb-2 text-white">База знаний</h2>
+            <p class="text-slate-400 mb-6 text-sm">
+                Фундаментальные принципы из книги «Магические Пули» и аудио-разборов.
+            </p>
+            <div id="theory-content" class="grid gap-4"></div>
+        </div>
+    </div>
+
+    <div id="view-texting" class="space-y-6 hidden animate-fade-in">
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-xl">
+            <h2 class="text-2xl font-semibold mb-2 text-white">Правила переписки (Text Game)</h2>
+            <p class="text-slate-400 mb-6 text-sm">
+                Строгий чеклист для мессенджеров.
+            </p>
+            <div id="texting-content" class="space-y-5"></div>
+        </div>
+    </div>
+
+    <div id="view-quiz" class="space-y-4 hidden animate-fade-in">
+        <div id="quiz-content"></div>
+    </div>
+
+    <div id="view-progress" class="space-y-6 hidden animate-fade-in">
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-xl">
+            <h2 class="text-2xl font-semibold mb-2 text-white">Твой прогресс</h2>
+            <p class="text-slate-400 mb-6 text-sm">
+                Статистика сохраняется прямо на устройстве.
+            </p>
+            <div id="progress-content"></div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+const STORAGE_KEY = "master-communication-progress";
+
+const THEORY_MODULES = [
+    { title: "Модель Эмоционального Продвижения", content: "Соблазнение — линейный процесс: 1) Открытие, 2) Переход, 3) Привлечение (ценность), 4) Квалификация (пусть докажет), 5) Комфорт (связь), 6) Соблазнение." },
+    { title: "Страх подхода и Клубы", content: "Меняй страх на решительность: 'Я решил подойти, и я подхожу'. В клубах сложность — другие парни. Уверенность бьет конкуренцию. Относись по-дружески к мужчинам в её группе." },
+    { title: "Открытие (Оупенеры)", content: "Лучшие оупенеры — на мнение. 'Ребята, нужен женский взгляд...'. Добавляй ложные ограничения времени (Я тут на секунду). Открывай в первые 3 секунды." },
+    { title: "Квалификация", content: "Не влюбляйся только во внешность. Заставь ее поработать. 'Кроме внешности, что в тебе еще есть интересного?'. Используй 'отступления' (игривые упреки)." }
+];
+
+const TEXTING_RULES = [
+    { title: "Исключи слова неуверенности", desc: "Избегай: вероятно, кажется, похоже, может быть, наверное.", bad: "Наверное, мы могли бы сходить в кино...", good: "Завтра идем в кино." },
+    { title: "Не проси разрешения (можно/можем)", desc: "Не предлагай — а озвучивай план. Бери ответственность на себя.", bad: "Можем сходить в бар?", good: "Свожу тебя в бар. Напиши мне вечером." },
+    { title: "Превращай вопросы в догадки", desc: "Вместо вопросов делай утверждения. Это интригует.", bad: "Кем ты работаешь?", good: "У тебя хорошо поставлена речь, наверняка много работаешь с людьми." },
+    { title: "Откажись от скобочек «)»", desc: "Смайлики уменьшают серьезность сообщения.", bad: "Привет, как дела) Чем занимаешься)))", good: "Привет. Чем занята" },
+    { title: "Пиши коротко и неясно", desc: "Старайся писать меньше, чем она. Меньше заморачивайся с пунктуацией.", bad: "В 21 я только буду выезжать, так что у тебя будет время подготовиться.", good: "Буду выезжать в 21, у тебя будет время собраться" },
+    { title: "Не злоупотребляй голосовыми", desc: "Длинные аудио — это DLV. Переводи долгое общение во встречу.", bad: "Голосовое на 3 минуты.", good: "Я мог бы разговаривать с тобой часами, давай встретимся" }
+];
+
+const QUIZ_QUESTIONS = [
+    { situation: "В Telegram. Хочешь позвать её на встречу. Что напишешь?", options: [
+        { text: "Может быть, сходим завтра вечером куда-нибудь?", isCorrect: false },
+        { text: "Завтра в 20:00 буду в центре, зайдем выпьем кофе", isCorrect: true },
+        { text: "Можно пригласить тебя на ужин завтра?)))", isCorrect: false }
+    ], explanation: "Не проси разрешения (можно/можем). Озвучивай план. Никаких скобочек." },
+
+    { situation: "Ты хочешь узнать, чем она занимается по жизни. Как спросишь?", options: [
+        { text: "Кем работаешь?", isCorrect: false },
+        { text: "А где ты трудишься?)", isCorrect: false },
+        { text: "У тебя классный стиль, наверняка крутишься в дизайне", isCorrect: true }
+    ], explanation: "Превращай вопросы в догадки. Провоцируй на эмоции." },
+
+    { situation: "Она написала длинное голосовое сообщение. Твои действия:", options: [
+        { text: "Записать в ответ на 3 минуты", isCorrect: false },
+        { text: "Ответить коротко текстом, перевести во встречу", isCorrect: true },
+        { text: "Отправить 5 смеющихся смайликов 😂", isCorrect: false }
+    ], explanation: "Не злоупотребляй голосовыми (DLV). Не кидай много эмодзи." },
+
+    { situation: "Клуб. Девушка с подругой и парнем. Твои действия:", options: [
+        { text: "Подойти только к ней", isCorrect: false },
+        { text: "Подойти ко всем, обратиться к парню с оупенером", isCorrect: true },
+        { text: "Смотреть издалека", isCorrect: false }
+    ], explanation: "При открытии смешанной группы обратись к парням (уважение, без врагов), используй нейтральный оупенер." },
+
+    { situation: "Она пишет: 'Ты где?'. Твой ответ:", options: [
+        { text: "Я дома.", isCorrect: false },
+        { text: "Дома. А ты где?", isCorrect: false },
+        { text: "дома", isCorrect: true }
+    ], explanation: "Пиши коротко и неясно. Убирай точки в конце, с маленькой буквы." }
+];
+
+const defaultState = {
+    quiz: {
+        currentQuestion: 0,
+        score: 0,
+        isAnswered: false,
+        selectedOption: null,
+        isFinished: false
+    },
+    stats: {
+        attempts: 0,
+        bestScore: 0,
+        totalCorrect: 0,
+        totalQuestions: 0
+    },
+    theoryRead: [],
+    textingRead: []
+};
+
+let state = loadState();
+
+function cloneDefault() {
+    return JSON.parse(JSON.stringify(defaultState));
+}
+
+function loadState() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return cloneDefault();
+
+        const parsed = JSON.parse(saved);
+
+        return {
+            ...cloneDefault(),
+            ...parsed,
+            quiz: { ...defaultState.quiz, ...(parsed.quiz || {}) },
+            stats: { ...defaultState.stats, ...(parsed.stats || {}) }
+        };
+    } catch (error) {
+        console.error("Ошибка загрузки прогресса:", error);
+        return cloneDefault();
+    }
+}
+
+function saveState() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+        console.error("Ошибка сохранения:", error);
+    }
+}
+
+window.switchTab = function(tabId) {
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        if (btn.dataset.tab === tabId) {
+            btn.className = "tab-btn flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap bg-indigo-600 text-white shadow-lg shadow-indigo-900/30";
+        } else {
+            btn.className = "tab-btn flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800";
+        }
+    });
+
+    ["theory", "texting", "quiz", "progress"].forEach(id => {
+        document.getElementById("view-" + id).style.display = id === tabId ? "block" : "none";
+    });
+
+    if (tabId === "progress") renderProgress();
+};
+
+function renderTheory() {
+    document.getElementById("theory-content").innerHTML = THEORY_MODULES.map((mod, index) => {
+        const read = state.theoryRead.includes(index);
+
+        return `
+            <div class="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-semibold text-blue-400 mb-2 text-lg">${mod.title}</h3>
+                    <button onclick="toggleTheory(${index})"
+                        class="shrink-0 text-xs px-3 py-2 rounded-lg ${read ? "bg-emerald-900/50 text-emerald-300" : "bg-slate-700 text-slate-300"}">
+                        ${read ? "✓ Изучено" : "Отметить"}
+                    </button>
+                </div>
+                <p class="text-sm text-slate-300 leading-relaxed">${mod.content}</p>
+            </div>
+        `;
+    }).join("");
+}
+
+window.toggleTheory = function(index) {
+    const i = state.theoryRead.indexOf(index);
+
+    if (i === -1) state.theoryRead.push(index);
+    else state.theoryRead.splice(i, 1);
+
+    saveState();
+    renderTheory();
+    renderProgress();
+};
+
+function renderTextingRules() {
+    document.getElementById("texting-content").innerHTML = TEXTING_RULES.map((rule, index) => {
+        const read = state.textingRead.includes(index);
+
+        return `
+            <div class="bg-slate-950 rounded-xl p-5 border border-slate-800 shadow-inner">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-indigo-400 mb-2 text-lg">${rule.title}</h3>
+                    <button onclick="toggleTexting(${index})"
+                        class="shrink-0 text-xs px-3 py-2 rounded-lg ${read ? "bg-emerald-900/50 text-emerald-300" : "bg-slate-800 text-slate-300"}">
+                        ${read ? "✓ Изучено" : "Отметить"}
+                    </button>
+                </div>
+
+                <p class="text-sm text-slate-400 mb-5">${rule.desc}</p>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="bg-red-950/20 border border-red-900/50 rounded-xl p-4">
+                        <span class="text-xs font-bold text-red-500 uppercase tracking-wider mb-2 block">❌ Как не надо</span>
+                        <p class="text-sm text-red-100 italic">"${rule.bad}"</p>
+                    </div>
+
+                    <div class="bg-emerald-950/20 border border-emerald-900/50 rounded-xl p-4">
+                        <span class="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-2 block">✅ Как надо</span>
+                        <p class="text-sm text-emerald-100 font-medium">"${rule.good}"</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+window.toggleTexting = function(index) {
+    const i = state.textingRead.indexOf(index);
+
+    if (i === -1) state.textingRead.push(index);
+    else state.textingRead.splice(i, 1);
+
+    saveState();
+    renderTextingRules();
+    renderProgress();
+};
+
+function renderQuiz() {
+    const container = document.getElementById("quiz-content");
+
+    if (state.quiz.isFinished) {
+        container.innerHTML = `
+            <div class="bg-slate-900 rounded-2xl p-8 border border-slate-800 text-center shadow-xl">
+                <div class="text-6xl mb-6">🎯</div>
+                <h2 class="text-3xl font-bold text-white mb-3">Тренировка завершена!</h2>
+                <p class="text-slate-400 mb-6 text-lg">
+                    Твой результат:
+                    <span class="font-bold text-white text-2xl">${state.quiz.score}</span>
+                    из ${QUIZ_QUESTIONS.length}
+                </p>
+
+                <p class="text-sm text-slate-500 mb-8">
+                    ${state.quiz.score === QUIZ_QUESTIONS.length
+                        ? "Идеально! Все ответы правильные."
+                        : "Неплохо. Перечитай теорию и попробуй ещё раз."}
+                </p>
+
+                <button onclick="restartQuiz()"
+                    class="bg-indigo-600 text-white font-medium py-3 px-8 rounded-xl">
+                    Пройти заново
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    const q = QUIZ_QUESTIONS[state.quiz.currentQuestion];
+
+    const optionsHtml = q.options.map((opt, idx) => {
+        let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all ";
+        let iconHtml = `<div class="w-5 h-5 rounded-full border-2 border-slate-600"></div>`;
+
+        if (!state.quiz.isAnswered) {
+            btnClass += "bg-slate-950 border-slate-800 hover:border-indigo-500 hover:bg-slate-900";
+        } else if (idx === state.quiz.selectedOption) {
+            btnClass += opt.isCorrect
+                ? "bg-emerald-950/40 border-emerald-500 text-emerald-100"
+                : "bg-red-950/40 border-red-500 text-red-100";
+            iconHtml = opt.isCorrect ? "✅" : "❌";
+        } else if (opt.isCorrect) {
+            btnClass += "bg-emerald-950/10 border-emerald-500/30 text-emerald-200";
+            iconHtml = "✅";
+        } else {
+            btnClass += "bg-slate-950 border-slate-800 opacity-40";
+        }
+
+        return `
+            <button ${state.quiz.isAnswered ? "disabled" : ""}
+                onclick="selectOption(${idx}, ${opt.isCorrect})"
+                class="${btnClass}">
+                <div class="flex items-start gap-3">
+                    <div class="mt-0.5 shrink-0 text-lg">${iconHtml}</div>
+                    <span class="text-sm md:text-base">${opt.text}</span>
+                </div>
+            </button>
+        `;
+    }).join("");
+
+    const explanationHtml = state.quiz.isAnswered ? `
+        <div class="mt-6 p-5 bg-blue-950/20 border-l-4 border-blue-500 rounded-r-xl">
+            <h4 class="text-blue-400 font-bold mb-2 text-sm uppercase">Разбор ситуации</h4>
+            <p class="text-sm text-slate-300 leading-relaxed">${q.explanation}</p>
+
+            <button onclick="nextQuestion()"
+                class="mt-5 w-full bg-blue-600 text-white font-medium py-3 rounded-lg">
+                Дальше ➔
+            </button>
+        </div>
+    ` : "";
+
+    container.innerHTML = `
+        <div class="flex justify-between items-center text-sm font-medium text-slate-400 mb-2 px-2">
+            <span>Ситуация ${state.quiz.currentQuestion + 1} из ${QUIZ_QUESTIONS.length}</span>
+            <span class="bg-slate-800 px-3 py-1 rounded-full text-indigo-300">
+                Счет: ${state.quiz.score}
+            </span>
+        </div>
+
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-xl">
+            <h3 class="text-lg md:text-xl font-medium text-white mb-6 leading-relaxed">
+                ${q.situation}
+            </h3>
+
+            <div class="space-y-3">
+                ${optionsHtml}
+            </div>
+
+            ${explanationHtml}
+        </div>
+    `;
+}
+
+window.selectOption = function(idx, isCorrect) {
+    if (state.quiz.isAnswered) return;
+
+    state.quiz.selectedOption = idx;
+    state.quiz.isAnswered = true;
+
+    if (isCorrect) state.quiz.score++;
+
+    saveState();
+    renderQuiz();
+};
+
+window.nextQuestion = function() {
+    if (state.quiz.currentQuestion < QUIZ_QUESTIONS.length - 1) {
+        state.quiz.currentQuestion++;
+        state.quiz.isAnswered = false;
+        state.quiz.selectedOption = null;
+    } else {
+        state.quiz.isFinished = true;
+
+        state.stats.attempts++;
+        state.stats.totalCorrect += state.quiz.score;
+        state.stats.totalQuestions += QUIZ_QUESTIONS.length;
+
+        if (state.quiz.score > state.stats.bestScore) {
+            state.stats.bestScore = state.quiz.score;
+        }
+    }
+
+    saveState();
+    renderQuiz();
+    renderProgress();
+};
+
+window.restartQuiz = function() {
+    state.quiz = {
+        currentQuestion: 0,
+        score: 0,
+        isAnswered: false,
+        selectedOption: null,
+        isFinished: false
+    };
+
+    saveState();
+    renderQuiz();
+};
+
+function getAccuracy() {
+    if (!state.stats.totalQuestions) return 0;
+    return Math.round((state.stats.totalCorrect / state.stats.totalQuestions) * 100);
+}
+
+function renderProgress() {
+    const container = document.getElementById("progress-content");
+
+    const theoryPercent = Math.round(
+        (state.theoryRead.length / THEORY_MODULES.length) * 100
+    );
+
+    const textingPercent = Math.round(
+        (state.textingRead.length / TEXTING_RULES.length) * 100
+    );
+
+    container.innerHTML = `
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-slate-800 rounded-xl p-5">
+                <div class="text-3xl font-bold text-white">
+                    ${state.stats.bestScore}/${QUIZ_QUESTIONS.length}
+                </div>
+                <div class="text-sm text-slate-400 mt-1">Лучший результат</div>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-5">
+                <div class="text-3xl font-bold text-white">
+                    ${state.stats.attempts}
+                </div>
+                <div class="text-sm text-slate-400 mt-1">Тренировок</div>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-5">
+                <div class="text-3xl font-bold text-white">
+                    ${state.stats.totalCorrect}
+                </div>
+                <div class="text-sm text-slate-400 mt-1">Правильных ответов</div>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-5">
+                <div class="text-3xl font-bold text-white">
+                    ${getAccuracy()}%
+                </div>
+                <div class="text-sm text-slate-400 mt-1">Точность</div>
+            </div>
+        </div>
+
+        <div class="mt-6 space-y-4">
+            <div>
+                <div class="flex justify-between text-sm mb-2">
+                    <span>Теория</span>
+                    <span>${theoryPercent}%</span>
+                </div>
+                <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-600" style="width:${theoryPercent}%"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-sm mb-2">
+                    <span>Text Game</span>
+                    <span>${textingPercent}%</span>
+                </div>
+                <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-600" style="width:${textingPercent}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="resetProgress()"
+            class="mt-8 w-full bg-red-950/40 border border-red-900 text-red-300 py-3 rounded-xl">
+            Сбросить весь прогресс
+        </button>
+    `;
+}
+
+window.resetProgress = function() {
+    if (!confirm("Сбросить весь прогресс?")) return;
+
+    localStorage.removeItem(STORAGE_KEY);
+    state = cloneDefault();
+
+    renderTheory();
+    renderTextingRules();
+    renderQuiz();
+    renderProgress();
+};
+
+window.addEventListener("load", () => {
+    renderTheory();
+    renderTextingRules();
+    renderQuiz();
+    renderProgress();
+});
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+            .then(() => console.log("Service Worker зарегистрирован"))
+            .catch(error => console.error("Ошибка Service Worker:", error));
+    });
+}
+</script>
+
+</body>
+</html>
