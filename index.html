@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#020617">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Мастер Ком">
+<meta name="description" content="Тренажер по перепискам и коммуникации">
+<link rel="manifest" href="./manifest.json">
+<title>Мастер Коммуникаций</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+</style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-sans min-h-screen pb-20 select-none">
+<header class="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-20">
+<div class="max-w-3xl mx-auto"><h1 class="text-xl font-bold text-indigo-400">Мастер Коммуникаций</h1></div>
+</header>
+<nav class="max-w-3xl mx-auto p-4 flex gap-2 overflow-x-auto no-scrollbar">
+<button onclick="tab('theory')" class="tab px-4 py-3 rounded-xl bg-indigo-600">📖 Теория</button>
+<button onclick="tab('texting')" class="tab px-4 py-3 rounded-xl bg-slate-900">💬 Text Game</button>
+<button onclick="tab('quiz')" class="tab px-4 py-3 rounded-xl bg-slate-900">🎯 Тренажер</button>
+<button onclick="tab('progress')" class="tab px-4 py-3 rounded-xl bg-slate-900">📊 Прогресс</button>
+</nav>
+<main class="max-w-3xl mx-auto p-4">
+<section id="theory"><div class="bg-slate-900 rounded-2xl p-6"><h2 class="text-2xl font-bold mb-5">База знаний</h2><div id="theoryContent" class="space-y-4"></div></div></section>
+<section id="texting" class="hidden"><div class="bg-slate-900 rounded-2xl p-6"><h2 class="text-2xl font-bold mb-5">Правила переписки</h2><div id="textingContent" class="space-y-5"></div></div></section>
+<section id="quiz" class="hidden"><div id="quizContent"></div></section>
+<section id="progress" class="hidden"><div class="bg-slate-900 rounded-2xl p-6"><h2 class="text-2xl font-bold mb-5">Твой прогресс</h2><div id="progressContent"></div></div></section>
+</main>
+<script>
+const KEY="master-communication-progress";
+const THEORY=[
+["Модель Эмоционального Продвижения","1) Открытие, 2) Переход, 3) Привлечение, 4) Квалификация, 5) Комфорт, 6) Соблазнение."],
+["Страх подхода и Клубы","Меняй страх на решительность: «Я решил подойти, и я подхожу». В клубах относись по-дружески к мужчинам в её группе."],
+["Открытие (Оупенеры)","Лучшие оупенеры — на мнение. Открывай в первые 3 секунды."],
+["Квалификация","Не влюбляйся только во внешность. Узнавай человека и используй игривые упреки."]
+];
+const RULES=[
+["Исключи слова неуверенности","Избегай: вероятно, кажется, похоже, может быть, наверное.","Наверное, мы могли бы сходить в кино...","Завтра идем в кино."],
+["Не проси разрешения","Озвучивай план.","Можем сходить в бар?","Свожу тебя в бар. Напиши мне вечером."],
+["Превращай вопросы в догадки","Вместо вопросов делай утверждения.","Кем ты работаешь?","У тебя хорошо поставлена речь, наверняка много работаешь с людьми."],
+["Не злоупотребляй голосовыми","Длинные аудио лучше переводить во встречу.","Голосовое на 3 минуты.","Давай встретимся."]
+];
+const QUESTIONS=[
+["В Telegram. Хочешь позвать её на встречу?",["Может быть, сходим завтра?","Завтра в 20:00 буду в центре, зайдем выпьем кофе","Можно пригласить тебя?)))"],1,"Озвучивай план и не проси разрешения."],
+["Хочешь узнать, чем она занимается?",["Кем работаешь?","А где ты трудишься?)","У тебя классный стиль, наверняка крутишься в дизайне"],2,"Используй наблюдение вместо сухого вопроса."],
+["Она прислала длинное голосовое.",["Ответить голосовым на 3 минуты","Ответить коротко и перевести во встречу","Отправить много смайликов"],1,"Не обязательно отвечать длинным голосовым."],
+["Она пишет: «Ты где?»",["Я дома.","Дома. А ты где?","дома"],2,"Короткий ответ — один из вариантов."]
+];
+let state=load();
+function fresh(){return {q:0,score:0,answered:false,selected:null,finished:false,attempts:0,best:0,correct:0,total:0,theory:[],rules:[]}}
+function load(){try{return Object.assign(fresh(),JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){return fresh()}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function tab(id){document.querySelectorAll("main section").forEach(s=>s.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");document.querySelectorAll(".tab").forEach(b=>b.className="tab px-4 py-3 rounded-xl bg-slate-900");event.currentTarget.className="tab px-4 py-3 rounded-xl bg-indigo-600";if(id==="progress")progress()}
+function theory(){theoryContent.innerHTML=THEORY.map((x,i)=>`<div class="bg-slate-800 p-5 rounded-xl"><div class="flex justify-between gap-3"><h3 class="text-indigo-400 font-bold">${x[0]}</h3><button onclick="markTheory(${i})" class="text-xs">${state.theory.includes(i)?"✓ Изучено":"Отметить"}</button></div><p class="mt-2 text-sm">${x[1]}</p></div>`).join("")}
+function rules(){textingContent.innerHTML=RULES.map((x,i)=>`<div class="bg-slate-950 p-5 rounded-xl border border-slate-800"><div class="flex justify-between"><h3 class="text-indigo-400 font-bold">${x[0]}</h3><button onclick="markRule(${i})" class="text-xs">${state.rules.includes(i)?"✓ Изучено":"Отметить"}</button></div><p class="text-sm text-slate-400 my-4">${x[1]}</p><p class="text-red-300 text-sm">❌ ${x[2]}</p><p class="text-emerald-300 text-sm mt-2">✅ ${x[3]}</p></div>`).join("")}
+function markTheory(i){state.theory.includes(i)?state.theory.splice(state.theory.indexOf(i),1):state.theory.push(i);save();theory();progress()}
+function markRule(i){state.rules.includes(i)?state.rules.splice(state.rules.indexOf(i),1):state.rules.push(i);save();rules();progress()}
+function quiz(){if(state.finished){quizContent.innerHTML=`<div class="bg-slate-900 p-8 rounded-2xl text-center"><div class="text-5xl">🎯</div><h2 class="text-2xl font-bold my-4">Готово!</h2><p>Результат: ${state.score} / ${QUESTIONS.length}</p><button onclick="restart()" class="mt-6 bg-indigo-600 px-6 py-3 rounded-xl">Пройти заново</button></div>`;return}let x=QUESTIONS[state.q];quizContent.innerHTML=`<div class="mb-3 text-sm text-slate-400">Ситуация ${state.q+1} из ${QUESTIONS.length} · Счёт ${state.score}</div><div class="bg-slate-900 p-6 rounded-2xl"><h2 class="text-xl font-bold mb-5">${x[0]}</h2><div class="space-y-3">${x[1].map((o,i)=>`<button ${state.answered?"disabled":""} onclick="answer(${i})" class="w-full text-left p-4 rounded-xl border ${state.answered?(i===x[2]?"border-emerald-500":"border-slate-800 opacity-50"):"border-slate-800 hover:border-indigo-500"}">${i===x[2]&&state.answered?"✅ ":""}${o}</button>`).join("")}</div>${state.answered?`<div class="mt-5 p-4 bg-blue-950/30 rounded-xl"><b>Разбор:</b><p class="mt-2">${x[3]}</p><button onclick="next()" class="mt-4 w-full bg-blue-600 py-3 rounded-xl">Дальше →</button></div>`:""}</div>`}
+function answer(i){if(state.answered)return;state.selected=i;state.answered=true;if(i===QUESTIONS[state.q][2])state.score++;save();quiz()}
+function next(){if(state.q<QUESTIONS.length-1){state.q++;state.answered=false;state.selected=null}else{state.finished=true;state.attempts++;state.correct+=state.score;state.total+=QUESTIONS.length;if(state.score>state.best)state.best=state.score}save();quiz();progress()}
+function restart(){state.q=0;state.score=0;state.answered=false;state.selected=null;state.finished=false;save();quiz()}
+function progress(){progressContent.innerHTML=`<div class="grid grid-cols-2 gap-4"><div class="bg-slate-800 p-5 rounded-xl"><b class="text-3xl">${state.best}/${QUESTIONS.length}</b><p class="text-slate-400">Лучший результат</p></div><div class="bg-slate-800 p-5 rounded-xl"><b class="text-3xl">${state.attempts}</b><p class="text-slate-400">Тренировок</p></div><div class="bg-slate-800 p-5 rounded-xl"><b class="text-3xl">${state.correct}</b><p class="text-slate-400">Правильных</p></div><div class="bg-slate-800 p-5 rounded-xl"><b class="text-3xl">${state.total?Math.round(state.correct/state.total*100):0}%</b><p class="text-slate-400">Точность</p></div></div><button onclick="resetAll()" class="mt-6 w-full bg-red-950/50 border border-red-900 text-red-300 py-3 rounded-xl">Сбросить прогресс</button>`}
+function resetAll(){if(confirm("Сбросить весь прогресс?")){localStorage.removeItem(KEY);state=fresh();theory();rules();quiz();progress()}}
+theory();rules();quiz();progress();
+if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(console.error);
+</script>
+</body>
+</html>
